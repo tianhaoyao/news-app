@@ -9,15 +9,14 @@ function App() {
   const API = process.env.REACT_APP_API;
   const dispatch = useDispatch();
   const newsData = useSelector((state) => state.news);
-  const [search, setSearch] = useState("apple");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [display, setDisplay] = useState([]);
+
 
  
   const reset = async() => {
     dispatch(del());
     setPage(0);
-    setDisplay([]);
     init();
     
   }
@@ -34,14 +33,13 @@ function App() {
       try {
         const res = await fetch(`https://newsapi.org/v2/everything?q=${search}&from=2021-04-25&to=2021-04-25&sortBy=popularity&apiKey=${API}`);
         const data = await res.json();
-        let collection = []
+
         for(let i = 0; i < data["articles"].length; i++) {
           let article = data["articles"][i]
           dispatch(populate(article));
-          collection.push(article)
+
         }
         
-        setDisplay(collection.slice(0,10));
         }
         catch(err) {
           console.log(err)
@@ -55,7 +53,11 @@ function App() {
 
   const switchPage = (direction) => {
     if(direction === "next") {
-      setPage(page+1);
+      if(page < Math.floor((newsData.length-1)/10)) {
+        setPage(page+1);
+      }
+      
+
     }
     else {
       if(page > 0) {
@@ -66,17 +68,10 @@ function App() {
       }
       
     }
-    
-    let begin = page * 10
-    let end = (page+1) * 10
-    setDisplay(newsData.slice(begin, end))
-    console.log(newsData)
-    console.log(page)
   }
 
   const handleChange = (event) => {
     setSearch(event.target.value);
-    console.log(search)
   };
 
   return (
@@ -89,8 +84,8 @@ function App() {
         onChange={handleChange}
       />
 
-      {display !== undefined ? (
-        display.map(function (article, i) {
+      {newsData !== undefined ? (
+        newsData.slice(page * 10, (page+1) * 10).map(function (article, i) {
           return (
             <div>
               <Article 
