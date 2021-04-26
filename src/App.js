@@ -13,12 +13,7 @@ function App() {
   const [page, setPage] = useState(0);
   const [display, setDisplay] = useState([]);
 
-  useEffect(() => {
-    reset();
-    
-    
-  }, [search])
-
+ 
   const reset = async() => {
     dispatch(del());
     setPage(0);
@@ -26,25 +21,39 @@ function App() {
     init();
     
   }
+  useEffect(() => {
+    reset();
+    
+    
+  }, [search])
+
 
   const init = async() => {
     if(search !== "") {
-      const res = await fetch(`https://newsapi.org/v2/everything?q=${search}&from=2021-04-25&to=2021-04-25&sortBy=popularity&apiKey=${API}`);
-      const data = await res.json();
-      let collection = []
-      for(let i = 0; i < data["articles"].length; i++) {
-        let article = data["articles"][i]
-        dispatch(populate(article));
-        collection.push(article)
+      dispatch(del());
+      try {
+        const res = await fetch(`https://newsapi.org/v2/everything?q=${search}&from=2021-04-25&to=2021-04-25&sortBy=popularity&apiKey=${API}`);
+        const data = await res.json();
+        let collection = []
+        for(let i = 0; i < data["articles"].length; i++) {
+          let article = data["articles"][i]
+          dispatch(populate(article));
+          collection.push(article)
+        }
+        
+        setDisplay(collection.slice(0,10));
+        }
+        catch(err) {
+          console.log(err)
+        }
       }
       
-      setDisplay(collection.slice(0,10));
-      }
+      
     
   
   }
 
-  const switchPage = async(direction) => {
+  const switchPage = (direction) => {
     if(direction === "next") {
       setPage(page+1);
     }
@@ -61,7 +70,7 @@ function App() {
     let begin = page * 10
     let end = (page+1) * 10
     setDisplay(newsData.slice(begin, end))
-    console.log(begin, end)
+    console.log(newsData)
     console.log(page)
   }
 
@@ -97,6 +106,7 @@ function App() {
         <br />
       )}
       <button onClick={() => {switchPage("prev")}}>prev page</button>
+      <p>page: {page}</p>
       <button onClick={() => {switchPage("next")}}>next page</button>
       
     </div>
