@@ -1,7 +1,8 @@
-export const populate = (entry) => {
+export const populate = (entry, index) => {
     return {
         type: "POPULATE",
-        payload: entry
+        payload: entry,
+        index: index
     };
 };
 

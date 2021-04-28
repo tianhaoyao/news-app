@@ -1,9 +1,11 @@
 const newsReducer = (state = [], action) => {
     switch (action.type) {
         case "POPULATE":
-            return [...state, action.payload]
+            return {...state,
+                [action.index]: action.payload
+            }
         case "DELETE":
-            return []
+            return {}
         default:
             return state;
     }

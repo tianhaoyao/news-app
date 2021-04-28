@@ -11,7 +11,15 @@ function App() {
   const newsData = useSelector((state) => state.news);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
+  const PAGESIZE = 10;
 
+  let indices = []
+  for(let i = (page) * 10; i < (page+1) * 10; i++) {
+    if(newsData[i]) {
+      indices.push(i)
+    }
+    
+  }
 
  
   const reset = async() => {
@@ -26,24 +34,39 @@ function App() {
     
   }, [search])
 
+  useEffect(() => {
+    init();
+  }, [page])
+
 
   const init = async() => {
     if(search !== "") {
-      dispatch(del());
+      let complete = true;
+      for(let i = (page) * 10; i < (page+1) * 10; i++) {
+        if(!newsData[i]) {
+          complete = false;
+        }
+        
+      }
+      if(!complete) {
+
+      
       try {
-        const res = await fetch(`https://newsapi.org/v2/everything?q=${search}&from=2021-04-25&to=2021-04-25&sortBy=popularity&apiKey=${API}`);
+        
+        const res = await fetch(`https://newsapi.org/v2/everything?q=${search}&pageSize=${PAGESIZE}&page=${page+1}&sortBy=popularity&apiKey=${API}`);
         const data = await res.json();
 
         for(let i = 0; i < data["articles"].length; i++) {
           let article = data["articles"][i]
-          dispatch(populate(article));
-
+          dispatch(populate(article, page*10+i));
         }
+
         
         }
         catch(err) {
           console.log(err)
         }
+      }
       }
       
       
@@ -53,9 +76,9 @@ function App() {
 
   const switchPage = (direction) => {
     if(direction === "next") {
-      if(page < Math.floor((newsData.length-1)/10)) {
-        setPage(page+1);
-      }
+      
+      setPage(page+1);
+      
       
 
     }
@@ -74,6 +97,8 @@ function App() {
     setSearch(event.target.value);
   };
 
+  
+
   return (
     <div className="App">
 
@@ -85,7 +110,8 @@ function App() {
       />
 
       {newsData !== undefined ? (
-        newsData.slice(page * 10, (page+1) * 10).map(function (article, i) {
+        indices.map(function (index) {
+          let article = newsData[index];
           return (
             <div>
               <Article 
