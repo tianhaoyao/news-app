@@ -6,8 +6,12 @@ export const populate = (entry, index) => {
     };
 };
 
-export const del = () => {
-    return {
-        type: "DELETE"
-    };
+export const del = () => dispatch => {
+    dispatch(
+        {
+            type: "DELETE"
+        }
+    );
+    return Promise.resolve();
+    
 }

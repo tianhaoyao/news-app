@@ -10,6 +10,8 @@ function App() {
   const dispatch = useDispatch();
   const newsData = useSelector((state) => state.news);
   const [search, setSearch] = useState("");
+  const [query, setQuery] = useState("");
+  const [source, setSource] = useState("");
   const [page, setPage] = useState(0);
   const PAGESIZE = 10;
 
@@ -23,37 +25,54 @@ function App() {
 
  
   const reset = async() => {
-    dispatch(del());
+    console.log("reset")
+    dispatch(del()).then(()=>{
+      console.log("got here")
+      init();
+    });
     setPage(0);
-    init();
+    
     
   }
   useEffect(() => {
     reset();
     
     
-  }, [search])
+  }, [search, source])
 
   useEffect(() => {
     init();
   }, [page])
 
 
+
   const init = async() => {
+    // console.log("initing")
+    // console.log(search)
+    // console.log(source)
     if(search !== "") {
       let complete = true;
+      console.log("here")
       for(let i = (page) * 10; i < (page+1) * 10; i++) {
         if(!newsData[i]) {
           complete = false;
         }
         
       }
+      console.log(complete)
       if(!complete) {
 
       
       try {
+        let req = ""
+        if(source) {
+          req = `https://newsapi.org/v2/everything?q=${search}&pageSize=${PAGESIZE}&sources=${source}&page=${page+1}&sortBy=popularity&apiKey=${API}`
+        }
+        else {
+          req = `https://newsapi.org/v2/everything?q=${search}&pageSize=${PAGESIZE}&page=${page+1}&sortBy=popularity&apiKey=${API}`
+        }
         
-        const res = await fetch(`https://newsapi.org/v2/everything?q=${search}&pageSize=${PAGESIZE}&page=${page+1}&sortBy=popularity&apiKey=${API}`);
+        const res = await fetch(req);
         const data = await res.json();
 
         for(let i = 0; i < data["articles"].length; i++) {
@@ -94,20 +113,40 @@ function App() {
   }
 
   const handleChange = (event) => {
-    setSearch(event.target.value);
+    setQuery(event.target.value);
   };
+
+  const handleSubmit = (event) => {
+    setSearch(query);
+    event.preventDefault();
+  }
+
+  function sourceClick(id) {
+    if(id === null) return;
+    setSource(id);
+    dispatch(del())
+  }
+
 
   
 
   return (
     <div className="App">
+      <form onSubmit={handleSubmit}>
+        <input
+          type="text"
+          placeholder="Search"
+          value={query}
+          onChange={handleChange}
+        />
+        <input type="submit" value="Submit" />
+      </form>
 
-      <input
-        type="text"
-        placeholder="Search"
-        value={search}
-        onChange={handleChange}
-      />
+      {source !== "" ? 
+        <p>source: {source}</p>
+      :
+        <p>no source selected</p>
+      }
 
       {newsData !== undefined ? (
         indices.map(function (index) {
@@ -118,6 +157,9 @@ function App() {
                 title={article.title} 
                 content={article.content}
                 url={article.url}
+                source={article.source.name}
+                sourceid={article.source.id}
+                sourceClick={sourceClick}
                  />
               
             </div>
@@ -126,9 +168,12 @@ function App() {
       ) : (
         <br />
       )}
-      <button onClick={() => {switchPage("prev")}}>prev page</button>
-      <p>page: {page}</p>
-      <button onClick={() => {switchPage("next")}}>next page</button>
+      <div>
+        <button onClick={() => {switchPage("prev")}}>prev page</button>
+        <p>page: {page}</p>
+        <button onClick={() => {switchPage("next")}}>next page</button>
+        <button onClick={() => {sourceClick("")}}>reset source</button>
+      </div>
       
     </div>
   );
